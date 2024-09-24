@@ -1,0 +1,24 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: PCB2.PcbDoc   9/7/2024  3:14:19 AM
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : PCB2.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      25mil (0.635mm)                                           Round             38        PTH        18.72inch (475.50mm)
+T2      28mil (0.7mm)                                             Round             12        PTH        4.48inch (113.79mm)
+T3      30mil (0.75mm)                                            Round             16        PTH        7.95inch (202.00mm)
+T4      32mil (0.8mm)                                             Round             3         PTH        0.20inch (5.08mm)
+T5      33mil (0.85mm)                                            Round             8         PTH        0.91inch (23.11mm)
+T6      35mil (0.9mm)                                             Round             43        PTH        8.87inch (225.26mm)
+T7      39mil (1mm)                                               Round             53        PTH        16.48inch (418.62mm)
+T8      41mil (1.05mm)                                            Round             10        PTH        5.91inch (150.14mm)
+T9      47mil (1.2mm)                                             Round             10        PTH        0.90inch (22.86mm)
+T10     50mil (1.27mm)                                            Round             3         PTH        0.20inch (5.10mm)
+T11     51mil (1.3mm)                                             Round             2         PTH        0.20inch (5.08mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              198
+
+Total Processing Time (hh:mm:ss) : 00:00:00
