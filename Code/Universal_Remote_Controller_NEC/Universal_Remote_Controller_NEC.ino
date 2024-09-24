@@ -22,6 +22,9 @@
 #include <Arduino.h>
 #include "PinDefinitionsAndMore.h"  // Define macros for input and output pin etc.
 
+/**
+ * Keypad button codes
+ */
 #define POWER_BUTTON_CODE 10
 #define MENU_DOWN_REMOTE_BUTTON_CODE 11
 #define ZERO_REMOTE_BUTTON_CODE 12
@@ -43,9 +46,15 @@
 #define KEYPAD_NO_OF_ROWS 8
 #define KEYPAD_NO_OF_COLUMNS 3
 
+/**
+ * Row and column pins for the keypad
+ */
 byte rowPins[KEYPAD_NO_OF_ROWS] = { 14, 15, 16, 17, 18, 19, 20, 21 };  //connect to the row pinouts of the keypad
 byte colPins[KEYPAD_NO_OF_COLUMNS] = { 4, 5, 6 };                      //connect to the column pinouts of the keypad
 
+/**
+ * Key mapping for the keypad, associating buttons with IR codes or custom actions
+ */
 char hexaKeys[KEYPAD_NO_OF_ROWS][KEYPAD_NO_OF_COLUMNS] = {
   { CHANGE_REMOTE_BUTTON_CODE, PROGRAMMING_BUTTON_CODE, POWER_BUTTON_CODE },
   { 1, 2, 3 },
@@ -58,24 +67,27 @@ char hexaKeys[KEYPAD_NO_OF_ROWS][KEYPAD_NO_OF_COLUMNS] = {
 
 };
 
+/**
+ * Definitions for IR transmission and reception pins and RGB LED states
+ */
 #define IR_SEND_PIN 7
 #define IR_RECEIVE_PIN 2
-
 #define RG_LED_OFF 0
 #define RG_LED_RED 1
 #define RG_LED_GREEN 2
-
 #define RG_LED_GREEN_PIN 25
 #define RG_LED_RED_PIN 24
 
+/**
+ * Remote LED indicators for multiple remotes
+ */
 #define REMOTE0_LED_PIN 3
 #define REMOTE1_LED_PIN 30
 #define REMOTE2_LED_PIN 8
 #define REMOTE3_LED_PIN 9
 
-/*
-  * Specify DistanceWidthProtocol for decoding. This must be done before the #include <IRremote.hpp>
-  */
+
+// Enable NEC protocol for IR signal decoding
 #define DECODE_NEC  // Includes Apple and Onkyo
 
 
@@ -87,10 +99,18 @@ char hexaKeys[KEYPAD_NO_OF_ROWS][KEYPAD_NO_OF_COLUMNS] = {
 
 #define DELAY_BETWEEN_REPEATS_MILLIS 70
 
+
+/**
+ * EEPROM configuration:
+ * External EEPROM size: 1024 bytes
+ * Maximum remotes supported: 4
+ * Buttons per remote: 22
+ */
 #define NO_OF_REMOTES_SUPPORTED 4
 #define NO_OF_BUTTONS_PER_REMOTE 22
 #define REMOTE_BUTTONS_CODE_SIZE NO_OF_BUTTONS_PER_REMOTE * sizeof(ButtonRawData)
 #define EXT_EEPROM_SIZE_BYTE 1024
+
 // Create an EEPROM object configured at address 0
 extEEPROM ext_eeprom(kbits_8, 1, 16);  //device size, number of devices, page size
 
@@ -129,15 +149,15 @@ void setup() {
   IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK);
   IrReceiver.stop();
   IrSender.begin();  // Start with IR_SEND_PIN -which is defined in PinDefinitionsAndMore.h- as send pin and enable feedback LED at default feedback LED pin
-
+    // Light up the LED corresponding to the current remote
   lightUp_currentRemote_LED(remoteIndex);
   RG_LEG_lightUp(RG_LED_OFF);
-  /*
-    MyButtonIRData = {random(0xFFFF)};
-    storeButtonCodeInEEPROM(0, 15, &MyButtonIRData);
-    */
 }
 
+/**
+ * @brief Main loop function that continuously scans the keypad for button presses,
+ * handles remote switching, IR signal transmission, and programming mode.
+ */
 void loop() {
 
   currentPressedButtonCode = scanKeypad();
@@ -226,7 +246,12 @@ void loop() {
 }
 
 
-
+/**
+ * @brief Reads a button code from EEPROM based on remote and button indices.
+ * @param remoteIndex The index of the remote control (0 to 3).
+ * @param buttonIndex The index of the button (0 to 21).
+ * @return The raw IR data stored for that button.
+ */
 IRRawDataType readButtonCodeInEEPROM(uint8_t remoteIndex, uint8_t buttonIndex) {
   int address = remoteIndex * REMOTE_BUTTONS_CODE_SIZE + buttonIndex * sizeof(IRRawDataType);
   IRRawDataType data = 0;
@@ -239,7 +264,12 @@ IRRawDataType readButtonCodeInEEPROM(uint8_t remoteIndex, uint8_t buttonIndex) {
   return data;
 }
 
-// Function to store button code in EEPROM and verify
+/**
+ * @brief Stores an IR button code in EEPROM and verifies the stored data.
+ * @param remoteIndex The index of the remote control (0 to 3).
+ * @param buttonIndex The index of the button (0 to 21).
+ * @param data The IR raw data to store.
+ */
 void storeButtonCodeInEEPROM(uint8_t remoteIndex, uint8_t buttonIndex, IRRawDataType data) {
   int address = remoteIndex * REMOTE_BUTTONS_CODE_SIZE + buttonIndex * sizeof(IRRawDataType);
 
@@ -315,26 +345,33 @@ void LEDs_init() {
   pinMode(RG_LED_RED_PIN, OUTPUT);
 }
 
+/**
+ * @brief Scans the keypad to detect which button is pressed.
+ * @return The button code of the pressed button, or 0 if no button is pressed.
+ */
 uint8_t scanKeypad() {
-    for (int row = 0; row < KEYPAD_NO_OF_ROWS; row++) {
-        digitalWrite(rowPins[row], LOW);  // Activate the current row
-        delayMicroseconds(10);  // Brief delay for stabilization
-        for (int col = 0; col < KEYPAD_NO_OF_COLUMNS; col++) {
-            if (digitalRead(colPins[col]) == LOW) {  // Check if the key is pressed
-                delay(DEBOUNCE_DELAY);  // Wait for debounce
-                // Check again to confirm the key is still pressed
-                if (digitalRead(colPins[col]) == LOW) {
-                    digitalWrite(rowPins[row], HIGH);  // Deactivate the row
-                    return hexaKeys[row][col];  // Return the key value
-                }
-            }
+  for (int row = 0; row < KEYPAD_NO_OF_ROWS; row++) {
+    digitalWrite(rowPins[row], LOW);  // Activate the current row
+    delayMicroseconds(10);            // Brief delay for stabilization
+    for (int col = 0; col < KEYPAD_NO_OF_COLUMNS; col++) {
+      if (digitalRead(colPins[col]) == LOW) {  // Check if the key is pressed
+        delay(DEBOUNCE_DELAY);                 // Wait for debounce
+        // Check again to confirm the key is still pressed
+        if (digitalRead(colPins[col]) == LOW) {
+          digitalWrite(rowPins[row], HIGH);  // Deactivate the row
+          return hexaKeys[row][col];         // Return the key value
         }
-        digitalWrite(rowPins[row], HIGH);  // Deactivate the current row
+      }
     }
-    return NO_PRESSED_KEY_CODE;  // No key pressed
+    digitalWrite(rowPins[row], HIGH);  // Deactivate the current row
+  }
+  return NO_PRESSED_KEY_CODE;  // No key pressed
 }
 
-void Keypad_init(){
+/**
+ * @brief Initializes the keypad by setting row pins as INPUT and column pins as OUTPUT.
+ */
+void Keypad_init() {
   // Initialize row pins as outputs
   for (int i = 0; i < KEYPAD_NO_OF_ROWS; i++) {
     pinMode(rowPins[i], OUTPUT);
@@ -343,6 +380,6 @@ void Keypad_init(){
 
   // Initialize column pins as inputs
   for (int i = 0; i < KEYPAD_NO_OF_COLUMNS; i++) {
-    pinMode(colPins[i], INPUT_PULLUP); // Enable internal pull-up resistors
+    pinMode(colPins[i], INPUT_PULLUP);  // Enable internal pull-up resistors
   }
 }
